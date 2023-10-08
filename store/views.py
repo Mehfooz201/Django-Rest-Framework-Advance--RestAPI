@@ -13,15 +13,35 @@ from .serializers import ProductSerializers
 
 
 # Create your views here.
-@api_view()
+@api_view(['GET', 'POST'])
 def product_list(request):
-    products = Product.objects.all()
-    serializers = ProductSerializers(products, many=True)
-    return Response(serializers.data)
+    if request.method=='POST':
+        serializers = ProductSerializers(data=request.data)
+        serializers.is_valid(raise_exception=True)
+        # serializers.validated_data
+        serializers.save()
+        return Response(serializers.data, status=status.HTTP_201_CREATED)
+        
+    else:
+        products = Product.objects.all()
+        serializers = ProductSerializers(products, many=True)
+        return Response(serializers.data)
 
-@api_view()
+
+@api_view(['GET', 'PUT', 'DELETE'])
 def product_detail(request, id):
     product = get_object_or_404(Product, pk=id)
-    serializer = ProductSerializers(product)
-    return Response(serializer.data)
+    if request.method == 'GET':
+        serializer = ProductSerializers(product)
+        return Response(serializer.data)
     
+    elif request.method == 'PUT':
+        serializer = ProductSerializers(instance=product, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    
+    elif request.method == 'DELETE':
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
