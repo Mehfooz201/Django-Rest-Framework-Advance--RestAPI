@@ -8,7 +8,9 @@ from store.models import Product, Collection
 class CollectionSerializers(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'title']
+        fields = ['id', 'title', 'products_count']
+
+    products_count = serializers.IntegerField(read_only=True)
     
 
 
