@@ -5,6 +5,7 @@ from django.db.models.aggregates import Count
 
 #Django-RestFull
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.viewsets import ModelViewSet 
 
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.decorators import api_view
@@ -15,30 +16,57 @@ from .serializers import ProductSerializers, CollectionSerializers
 
 
 
-#---------------------- Class based API's View -------------------------------
-
-
-class ProductList(ListCreateAPIView):
-    def get_queryset(self):
-        return Product.objects.select_related('collection').all()
-    
-    def get_serializer_class(self):
-        return ProductSerializers
+#---------------------- Class based - ViewSets ---------------------------------
+class ProductViewSet(ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializers
     
     def get_serializer_context(self):
         return {'request': self.request}
     
+    def destory(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-class ProductDetail(RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializers
 
-    # lookup_field ='id'
+#Collection
+class CollectionViewSet(ModelViewSet):
+    queryset = Collection.objects.annotate(products_count=Count('products')).all()
+    serializer_class = CollectionSerializers
 
     def delete(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+#-------------------------------------------------------------------------------
+
+
+#---------------------- Class based Generic View -------------------------------
+# class ProductList(ListCreateAPIView):
+#     def get_queryset(self):
+#         return Product.objects.all()
+    
+#     def get_serializer_class(self):
+#         return ProductSerializers
+    
+#     def get_serializer_context(self):
+#         return {'request': self.request}
+    
+
+# class ProductDetail(RetrieveUpdateDestroyAPIView):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductSerializers
+
+#     # lookup_field ='id'
+
+#     def delete(self, request, pk):
+#         product = get_object_or_404(Product, pk=pk)
+#         product.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
@@ -46,16 +74,16 @@ class ProductDetail(RetrieveUpdateDestroyAPIView):
 
 
 #Collection
-class CollectionList(ListCreateAPIView):
-    queryset = Collection.objects.annotate(products_count=Count('products')).all()
-    serializer_class = CollectionSerializers
+# class CollectionList(ListCreateAPIView):
+#     queryset = Collection.objects.annotate(products_count=Count('products')).all()
+#     serializer_class = CollectionSerializers
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def collection_detail(request, id):
-    collection = get_object_or_404(Collection, pk=id)
-    if request.method == 'GET':
-        serializer = CollectionSerializers(collection)
-        return Response(serializer.data)
+# @api_view(['GET', 'PUT', 'DELETE'])
+# def collection_detail(request, id):
+#     collection = get_object_or_404(Collection, pk=id)
+#     if request.method == 'GET':
+#         serializer = CollectionSerializers(collection)
+#         return Response(serializer.data)
 
 
 
