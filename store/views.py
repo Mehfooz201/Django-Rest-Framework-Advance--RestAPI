@@ -11,16 +11,24 @@ from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Product, Collection
-from .serializers import ProductSerializers, CollectionSerializers
+from .models import Product, Collection, Review
+from .serializers import ProductSerializers, CollectionSerializers, ReviewSerializer
 
 
 
 #---------------------- Class based - ViewSets ---------------------------------
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializers
     
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        collection_id = self.request.query_params.get('collection_id')
+
+        if collection_id is not None:
+            queryset = queryset.filter(collection_id=collection_id)
+
+        return queryset
+
     def get_serializer_context(self):
         return {'request': self.request}
     
@@ -40,6 +48,11 @@ class CollectionViewSet(ModelViewSet):
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+#Reviews
+class ReviewViewSet(ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
 
 
 #-------------------------------------------------------------------------------

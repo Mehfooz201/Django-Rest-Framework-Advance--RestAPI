@@ -1,6 +1,6 @@
 from decimal import Decimal
 from rest_framework import serializers
-from store.models import Product, Collection
+from store.models import Product, Collection, Review
 
 
 #Define Serializers, Convert complete data types into JSON here using serializres
@@ -44,3 +44,9 @@ class ProductSerializers(serializers.ModelSerializer): #ModelSerializers
     #     instance.save()
     #     return instance
 
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['id', 'date', 'name', 'description', 'product']
