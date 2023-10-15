@@ -10,12 +10,12 @@ from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpda
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.mixins import CreateModelMixin
 
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Product, Collection, Review, Cart, CartItem
-from .serializers import ProductSerializers, CollectionSerializers, ReviewSerializer, CartSerializers, CartItemSerializers, AddCartItemSerializer, UpdateCartItemSerializer
+from .models import Product, Collection, Review, Cart, CartItem, Customer
+from .serializers import ProductSerializers, CollectionSerializers, ReviewSerializer, CartSerializers, CartItemSerializers, AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer
 from .filters import ProductFilter
 from .pagination import DefaultPagination
 
@@ -94,6 +94,24 @@ class CollectionViewSet(ModelViewSet):
 class ReviewViewSet(ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+
+
+
+#Customer
+class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin, GenericViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+
+
+
+
+
+
+
+
+
 
 
 #-------------------------------------------------------------------------------
