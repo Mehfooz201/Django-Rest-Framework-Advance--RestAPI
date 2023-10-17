@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.db import transaction
 from rest_framework import serializers
 from .models import Product, Collection, Review, Cart, CartItem, Customer, Order, OrderItem
-
+from .signals import order_created
 
 #Define Serializers, Convert complete data types into JSON here using serializres
 
@@ -142,6 +142,11 @@ class OrderSerializers(serializers.ModelSerializer):
         fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
 
 
+class UpdateOrderSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['payment_status']
+
 class CreateOrderSerializers(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
@@ -176,5 +181,7 @@ class CreateOrderSerializers(serializers.Serializer):
 
             #Deleting the Shopping Cart
             Cart.objects.filter(pk=cart_id).delete()
+
+            order_created.send_robust(self.__class__, order=order)
 
             return order
