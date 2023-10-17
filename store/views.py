@@ -16,8 +16,8 @@ from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveMode
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Product, Collection, Review, Cart, CartItem, Customer
-from .serializers import ProductSerializers, CollectionSerializers, ReviewSerializer, CartSerializers, CartItemSerializers, AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer
+from .models import Product, Collection, Review, Cart, CartItem, Customer, Order, OrderItem
+from .serializers import ProductSerializers, CollectionSerializers, ReviewSerializer, CartSerializers, CartItemSerializers, AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializers, OrderItemSerializers, CreateOrderSerializers
 from .filters import ProductFilter
 from .pagination import DefaultPagination
 from .permissions import IsAdminOrReadOnly, FullDjangoModelPermission, ViewCustomerHistoryPermission
@@ -26,10 +26,46 @@ from .permissions import IsAdminOrReadOnly, FullDjangoModelPermission, ViewCusto
 
 #----------------------- Cart & CartItem API ----------------------------------
 
+class OrderViewSet(ModelViewSet):
+    # permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
+
+    def create(self, request, *args, **kwargs):
+        serializer = CreateOrderSerializers(data=request.data,
+                                            context = {'user_id' : self.request.user.id}
+                                            )
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+
+        serializer = OrderSerializers(order)
+        return Response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreateOrderSerializers
+        return OrderSerializers
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Order.objects.all()
+
+        (customer_id, created) = Customer.objects.only('id').get_or_create(user_id=user.id) 
+        Order.objects.filter(customer_id=customer_id)
+    
+
+
+
 # class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
 class CartViewSet(ModelViewSet):
     queryset = Cart.objects.prefetch_related('items__product').all()
     serializer_class = CartSerializers
+
+    pagination_class = PageNumberPagination
+    permission_classes = [IsAdminOrReadOnly]
 
 
 
